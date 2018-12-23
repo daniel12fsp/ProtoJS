@@ -96,5 +96,6 @@ module.exports = {
     makeFrameText,
     makeFrame,
     makePongFrame,
-    makePingFrame
+    makePingFrame,
+    str2bytes
 };

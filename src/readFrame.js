@@ -11,6 +11,6 @@ function readFrame(buf) {
     for (let i = 0; i < payloadLength; i++) {
       realPayload[i] = maskedByte[i] ^ mask[i % 4];
     }
-    console.log(realPayload.toString());
+    return realPayload.toString()
 }
 module.exports = readFrame;
