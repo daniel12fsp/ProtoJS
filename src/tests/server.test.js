@@ -1,5 +1,5 @@
 const { WebSocketInternal } = require('../server');
-const { str2bytes } = require('../makeFrame');
+const { str2bytes, makePingFrame, makePongFrame } = require('../makeFrame');
 
 let server;
 let socket;
@@ -67,8 +67,9 @@ describe("Test handle different type of frame", () => {
     expect(server.lastReceive).toEqual("Hello");
   });
 
-  xit('Should be when receive a ping and send a pong', () => {
-    
+  it('Should be when receive a ping and send a pong', () => {
+    socket.data(makePingFrame());
+    expect(socket.lastBuffer).toEqual(makePongFrame());
   });
 
   xit('Should be able to read full message from continuation frame', () => {
@@ -76,9 +77,6 @@ describe("Test handle different type of frame", () => {
   });
 
   xit('Should be able to read a complete binary frame', () => {
-  });
-
-  xit('Should be when receive a pong and keep status connect', () => {
   });
 
   xit('Should be when receive a connection-close and keep status close', () => {

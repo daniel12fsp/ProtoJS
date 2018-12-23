@@ -4,7 +4,7 @@ const net = require('net');
 const hexdump = require('./helpers/hexdump');
 const {typeOfFrame} = require('./opcode');
 const readFrame = require('./readFrame');
-const {makeFrameText} = require('./makeFrame');
+const {makeFrameText, makePongFrame} = require('./makeFrame');
 const makeHandShake = require('./makeHandShake');
 
 
@@ -28,11 +28,12 @@ class WebSocketInternal{
   }
 
   onSocketData(data, socket){
-
+    
     switch (socket.status) {
       case 'handshake':
         makeHandShake(data, socket);
         socket.status = "data";
+        connectionState = "connect";
         break;
       case 'data':
         this.handleTypeOfFrames(data, socket);
@@ -60,8 +61,8 @@ class WebSocketInternal{
       case "connection-close":
         return ;
       case "ping":
-        //TODO read send pong Frame
-        return ;
+        socket.write(makePongFrame());
+        break;
       case "pong":
         //TODO read send update last connection
         return ;
