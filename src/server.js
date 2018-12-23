@@ -7,63 +7,80 @@ const readFrame = require('./readFrame');
 const {makeFrameText} = require('./makeFrame');
 const makeHandShake = require('./makeHandShake');
 
-function onSocketData(data){
-  global.socket = this;
-  global.makeFrame = makeFrameText;
-  if (this.status !== 'handshake') {
-    console.log(hexdump(data.buffer));
+
+class WebSocketInternal{
+  constructor(port, server){
+    this.connectionState = "inicialization";
+    this.clients = {};
+    const workingServer = server || net.createServer;
+      this.server = workingServer(this.handleSocketConnection.bind(this));
+      this.server.listen(port, 'localhost');
+  
   }
-  switch (this.status) {
-    case 'handshake':
-      makeHandShake(data, this);
-      this.status = "data";
-      break;
-    case 'data':
-      handleTypeOfFrames(data, this);
-      break;
-    default:
-      throw new Error("Invalid status");
+
+  handleSocketConnection(socket){
+    const key = socket.remoteAddress + ":" + socket.remotePort;
+    socket.name = key;
+    socket.status = 'handshake';
+    this.clients[key] = socket;
+    socket.on('data', (data) => this.onSocketData.apply(this, [data, socket]));
+    //TODO on close event send a close Frame
+  }
+
+  onSocketData(data, socket){
+
+    switch (socket.status) {
+      case 'handshake':
+        makeHandShake(data, socket);
+        socket.status = "data";
+        break;
+      case 'data':
+        this.handleTypeOfFrames(data, socket);
+        break;
+      default:
+        throw new Error("Invalid status");
+    }
+  }
+
+  handleTypeOfFrames(data, socket){
+    const fin = (data[0] & 0x80) === 0x80;
+    const opcode = typeOfFrame(data[0] & 0x0f);
+    let result;
+    switch (opcode) {
+      case "continuation":
+        //TODO read continuation Frame
+        break
+      case "text":
+        result = readFrame(data);
+        this.onReceive && this.onReceive(result)
+        return ;
+      case "binary":
+        //TODO read binary Frame
+        break
+      case "connection-close":
+        return ;
+      case "ping":
+        //TODO read send pong Frame
+        return ;
+      case "pong":
+        //TODO read send update last connection
+        return ;
+      default:
+       
+    }
   }
 }
 
-function handleTypeOfFrames(data, socket){
-  const fin = (data[0] & 0x80) === 0x80;
-  const opcode = typeOfFrame(data[0] & 0x0f);
-  switch (opcode) {
-    case "continuation":
-      //TODO read continuation Frame
-      break
-    case "text":
-      readFrame(data);
-      return ;
-    case "binary":
-      //TODO read binary Frame
-      break
-    case "connection-close":
-      return ;
-    case "ping":
-      //TODO read send pong Frame
-      return ;
-    case "pong":
-      //TODO read send update last connection
-      return ;
-    default:
-     
+
+class WebSocketServer{
+  constructor(port){
+    this.server = new WebSocketInternal(port);
+  }
+  send(){
+
+  }
+  sendPing(){
+
   }
 }
-
-const clients = {};
-//TODO transform this function in class
-const server = net.createServer(function (socket) {
-  const key = socket.remoteAddress + ":" + socket.remotePort;
-  socket.name = key;
-  socket.status = 'handshake';
-  clients[key] = socket;
-  socket.on('data', onSocketData);
-  //TODO on close event send a close Frame
-});
-
-server.listen(3030, 'localhost');
-
-
-module.exports = {handleTypeOfFrames};
+module.exports = {WebSocketServer, WebSocketInternal};
