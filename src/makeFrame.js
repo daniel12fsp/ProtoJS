@@ -29,33 +29,31 @@ function makeFrameText(payload){
     })
 }
 
-
-function makePongFrame(pingPayload){
-    if (pingPayload.length >= 126) {
+function handlePingPongPayload(payload){
+    if (payload && payload.length >= 126) {
         throw new Error("for pings and pongs, the max payload length is 125");
     }
-    if (typeof pingPayload === "string") {
-        pingPayload = str2bytes(pingPayload)
+    if (typeof payload === "string") {
+        payload = str2bytes(payload)
     }
+    return payload;
+}
+
+function makePongFrame(payload){
+    payload = handlePingPongPayload(payload);
     return makeFrame({
         fin: true,
         opcode: OPCODE.PONG,
-        payload: pingPayload,
+        payload,
     })
 }
 
 function makePingFrame(payload){
-    if (payload && payload.length >= 126) {
-        throw new Error("for pings and pongs, the max payload length is 125");
-    }
-    let pingPayload;
-    if (typeof payload === "string") {
-        pingPayload = str2bytes(payload)
-    }
+    payload = handlePingPongPayload(payload);
     return makeFrame({
         fin: true,
         opcode: OPCODE.PING,
-        payload: pingPayload,
+        payload,
     })
 }
 

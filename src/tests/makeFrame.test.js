@@ -37,5 +37,8 @@ describe("Test control Frame", () => {
     expect(() => makePingFrame(loren.substr(0, 127))).toThrowError("for pings and pongs, the max payload length is 125");
   });
 
-
+  it('Should be a valid pong', () => {
+    expect(makePongFrame()).toEqual(Buffer.from(new Int8Array([0x8a, 0x00])));
+    //TODO expect pong with payload
+  });
 });
