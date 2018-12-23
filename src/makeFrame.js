@@ -45,16 +45,17 @@ function makePongFrame(pingPayload){
 }
 
 function makePingFrame(payload){
-    if (payload.length >= 126) {
+    if (payload && payload.length >= 126) {
         throw new Error("for pings and pongs, the max payload length is 125");
     }
-    if (typeof pingPayload === "string") {
-        pingPayload = str2bytes(pingPayload)
+    let pingPayload;
+    if (typeof payload === "string") {
+        pingPayload = str2bytes(payload)
     }
     return makeFrame({
         fin: true,
         opcode: OPCODE.PING,
-        payload: encodedPayload,
+        payload: pingPayload,
     })
 }
 
@@ -64,31 +65,38 @@ function makeFrame({
     payload
 }) {
     //TODO support split frames
+    const dataPayloadLength  = (payload && payload.length)|| 0;
     const finOpcodeByte = (fin ? 0x80 : 0x00) | opcode; 
-    const bufferSize = getFrameSize(payload.length);
-    const target = Buffer.allocUnsafe(bufferSize);
+    const target = Buffer.allocUnsafe(getFrameSize(dataPayloadLength));
     target[0] = finOpcodeByte;
-    if (payload.length <= 125) {
-        target[1] = payload.length;
+    if (dataPayloadLength <= 125) {
+        target[1] = dataPayloadLength;
     } else
-    if (payload.length >= 126 && payload.length <= 65536) {
+    if (dataPayloadLength >= 126 && dataPayloadLength <= 65536) {
         // It has 2 bytes more
         target[1] = 126;
-        target.writeUInt16BE(payload.length, 2);
+        target.writeUInt16BE(dataPayloadLength, 2);
     } else
-    if (payload.length >= 65536) {
+    if (dataPayloadLength >= 65536) {
         // It has 8 bytes more
         target[1] = 127;
         target.writeUInt32BE(0, 2);
-        target.writeUInt32BE(payload.length, 6);
+        target.writeUInt32BE(dataPayloadLength, 6);
     } else {
         //TODO make another frame
     }
-    return Buffer.concat([target, payload]);
+
+    if (dataPayloadLength === 0 ) {
+        return Buffer.concat([target]);
+    } else {
+        return Buffer.concat([target, payload]);
+    }
 }
 
 
 module.exports = {
     makeFrameText,
-    makeFrame
+    makeFrame,
+    makePongFrame,
+    makePingFrame
 };

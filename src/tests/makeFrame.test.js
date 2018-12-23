@@ -1,4 +1,4 @@
-const {makeFrameText} = require('../makeFrame');
+const {makeFrameText,  makePongFrame,  makePingFrame} = require('../makeFrame');
 const loren = require('./lorem');
 const {TextEncoder} = require('util');
 
@@ -22,10 +22,20 @@ describe("Test text Frame", () => {
     expectFrameToBeEqual(loren.substr(0, 127), [0x81, 0x7e, 0x00, 0x7f]);
   });
 
-  it('Should be a valid frame with (7+64)bits to length payload', () => {
+  xit('Should be a valid frame with (7+64)bits to length payload', () => {
     expectFrameToBeEqual(loren.substr(0, 1 << 21), [0x81, 0x7f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00]);
   });
 });
 
 
+describe("Test control Frame", () => {
+  it('Should be a valid ping', () => {
+    expect(makePingFrame()).toEqual(Buffer.from(new Int8Array([0x89, 0x00])));
+    //TODO expect ping with payload
+  });
+  it('Should be a invalid ping', () => {
+    expect(() => makePingFrame(loren.substr(0, 127))).toThrowError("for pings and pongs, the max payload length is 125");
+  });
 
+
+});
