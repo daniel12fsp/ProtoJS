@@ -28,12 +28,11 @@ class WebSocketInternal{
   }
 
   onSocketData(data, socket){
-    
     switch (socket.status) {
       case 'handshake':
         makeHandShake(data, socket);
         socket.status = "data";
-        connectionState = "connect";
+        this.connectionState = "connect";
         break;
       case 'data':
         this.handleTypeOfFrames(data, socket);
@@ -42,18 +41,37 @@ class WebSocketInternal{
         throw new Error("Invalid status");
     }
   }
+  isFragmentedFrame(fin){
+    return (fin & 0x80) !== 0x80;
+  }
 
+  handleFragmentedFrame(data, opcode) {
+    let payloadData;
+    this.continuationFrame = this.continuationFrame || {};
+    this.continuationFrame.opcode = opcode;
+    payloadData = readFrame(data);
+    const concatedPayload = Buffer.concat([this.continuationFrame.data||Buffer.from([]), payloadData]);
+    this.continuationFrame.data = concatedPayload;
+  }
   handleTypeOfFrames(data, socket){
-    const fin = (data[0] & 0x80) === 0x80;
     const opcode = typeOfFrame(data[0] & 0x0f);
-    let result;
+    if (this.isFragmentedFrame(data[0])){
+      this.handleFragmentedFrame(data, opcode);
+      return;
+    }
+    let payloadData;
     switch (opcode) {
       case "continuation":
-        //TODO read continuation Frame
+        payloadData = readFrame(data)
+        payloadData = Buffer.concat([this.continuationFrame.data, payloadData]);
+        if (this.continuationFrame.opcode === "text"){
+          payloadData = payloadData.toString();
+        }
+        this.onReceive && this.onReceive(payloadData)
         break
       case "text":
-        result = readFrame(data);
-        this.onReceive && this.onReceive(result)
+        payloadData = readFrame(data).toString();
+        this.onReceive && this.onReceive(payloadData)
         return ;
       case "binary":
         //TODO read binary Frame

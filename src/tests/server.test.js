@@ -67,13 +67,15 @@ describe("Test handle different type of frame", () => {
     expect(server.lastReceive).toEqual("Hello");
   });
 
-  it('Should be when receive a ping and send a pong', () => {
+  it('Should when receive a ping and send a pong', () => {
     socket.data(makePingFrame());
     expect(socket.lastBuffer).toEqual(makePongFrame());
   });
 
-  xit('Should be able to read full message from continuation frame', () => {
-
+  it('Should be able to read full message from fragmented frame', () => {
+    socket.data(Buffer.from(new Int8Array([0x01, 0x03, 0x48, 0x65, 0x6c])));
+    socket.data(Buffer.from(new Int8Array([0x80, 0x02, 0x6c, 0x6f])));
+    expect(server.lastReceive).toEqual("Hello");
   });
 
   xit('Should be able to read a complete binary frame', () => {
