@@ -71,7 +71,7 @@ class WebSocketInternal{
         break
       case "text":
         payloadData = readFrame(data).toString();
-        this.onReceive && this.onReceive(payloadData)
+        this.onReceive && this.onReceive(payloadData);
         return ;
       case "binary":
         //TODO read binary Frame
@@ -88,18 +88,35 @@ class WebSocketInternal{
        
     }
   }
+  close(){
+    this.server.close();
+  }
 }
 
 
 class WebSocketServer{
   constructor(port){
     this.server = new WebSocketInternal(port);
+    const handler = {
+        set: (obj, prop, value) => {
+              if (prop === "onReceive") {
+                this.server[prop] = value;
+                return true;
+              }
+              obj[prop] = value;
+              return true;
+        }
+    };
+    return new Proxy(this, handler);
   }
   send(){
 
   }
   sendPing(){
 
+  }
+  close(){
+    this.server.close();
   }
 }
 module.exports = {WebSocketServer, WebSocketInternal};
