@@ -8,20 +8,22 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceFolder}/src/server.js",
+            "program": "${workspaceFolder}/src/examples/server.js",
             "runtimeExecutable": "${env:HOME}/.nvm/versions/node/v11.5.0/bin/node"
 
         },
         {
+            "name": "Debug Jest Tests",
             "type": "node",
             "request": "launch",
-            "name": "Jest Current File",
-            "program": "${workspaceFolder}/node_modules/.bin/jest",
+            "runtimeArgs": [
+              "--inspect-brk",
+              "${workspaceRoot}/node_modules/.bin/jest",
+              "--runInBand"
+            ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
-            "windows": {
-              "program": "${workspaceFolder}/node_modules/jest/bin/jest",
-            }
+            "port": 9229
           }
     ]
 }
