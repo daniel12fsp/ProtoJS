@@ -67,7 +67,7 @@ describe("Test handle different type of frame", () => {
     expect(server.lastReceive).toEqual("Hello");
   });
 
-  it('Should when receive a ping and send a pong', () => {
+  it('Should receive a ping and send a pong', () => {
     socket.data(makePingFrame());
     expect(socket.lastBuffer).toEqual(makePongFrame());
   });
@@ -81,7 +81,7 @@ describe("Test handle different type of frame", () => {
   xit('Should be able to read a complete binary frame', () => {
   });
 
-  xit('Should be when receive a connection-close and keep status close', () => {
+  xit('Should be able to read connection-close and closeSocket', () => {
   });
 });
 
