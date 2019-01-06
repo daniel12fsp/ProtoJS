@@ -11,34 +11,41 @@ function expectFrameToBeEqual(str, firstBytes){
 
 describe("Test text Frame", () => {
 
-  it('Should be a valid frame with 7-bit to length payload', () => {
+  it('Should be a valid frame with 7-bit payload length ', () => {
     expectFrameToBeEqual("Hello", [0x81, 0x05]);
     expectFrameToBeEqual(loren.substr(0, 63), [0x81, 0x3f]);
     expectFrameToBeEqual(loren.substr(0, 125), [0x81, 0x7d]);
   });
 
-  it('Should be a valid frame with (7+16)bits to length payload', () => {
+  it('Should be a valid frame with (7+16)bits payload length ', () => {
     expectFrameToBeEqual(loren.substr(0, 126), [0x81, 0x7e, 0x00, 0x7e]);
     expectFrameToBeEqual(loren.substr(0, 127), [0x81, 0x7e, 0x00, 0x7f]);
   });
 
-  xit('Should be a valid frame with (7+64)bits to length payload', () => {
+  it('Should be a valid frame with (7+64) payload length', () => {
     expectFrameToBeEqual(loren.substr(0, 1 << 21), [0x81, 0x7f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00]);
   });
 });
 
 
 describe("Test control Frame", () => {
-  it('Should be a valid ping', () => {
+  it('Should be a valid ping without payload', () => {
     expect(makePingFrame()).toEqual(Buffer.from(new Int8Array([0x89, 0x00])));
+  });
+
+  xit('Should be a valid ping with payload', () => {
     //TODO expect ping with payload
   });
+
   it('Should be a invalid ping', () => {
     expect(() => makePingFrame(loren.substr(0, 127))).toThrowError("for pings and pongs, the max payload length is 125");
   });
 
-  it('Should be a valid pong', () => {
+  it('Should be a valid pong without payload', () => {
     expect(makePongFrame()).toEqual(Buffer.from(new Int8Array([0x8a, 0x00])));
+  });
+
+  xit('Should be a valid pong with payload', () => {
     //TODO expect pong with payload
   });
 });
